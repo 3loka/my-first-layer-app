@@ -1,0 +1,8 @@
+version: v1
+type: base-layer
+name: Sets up Devops settings for your repo
+configuration:
+  topics: ["devops", "base-layer"]
+  workflow: "devops.yaml"
+  outputfile: "output.md"
+

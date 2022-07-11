@@ -1,0 +1,44 @@
+name: Setup Devops
+on:
+  workflow_dispatch:
+    inputs:
+      required-number-of-reviewers:
+        required: true
+        description: 'Required Number of Reviewers to approve a PR'
+      pat-token:
+        required: true
+        description: 'Personal Access Token'
+jobs:
+  devops-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Branch protection rules
+        uses: infamous-riddles/branch-guardian@v1
+        with:
+          # GITHUB_TOKEN is an automatically generated secret for authentication
+          PERSONAL-ACCESS-TOKEN: ${{ github.event.inputs.pat-token }}
+          # Approve the pull request automatically if it is by dependabot
+          REQUIRED-NUMBER-OF-REVIEWERS:  ${{ github.event.inputs.required-number-of-reviewers }}
+          # Comment of the review
+          REQUIRE-REVIEW-FROM-CODEOWNERS: true
+          DISMISS-STALE-PR-APPROVALS-ON-NEW-COMMITS: true
+          BASE-BRANCH-PATTERN: "main"
+
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          
+      - name: Configure git
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          
+      - name: setup Readme
+        run: |
+          git pull
+          mv .github/app-readme.md output.md
+          git add .
+          git commit -m "updated readme"
+          git push 
